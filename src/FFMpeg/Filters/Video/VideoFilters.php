@@ -41,6 +41,20 @@ class VideoFilters extends AudioFilters
     }
 
     /**
+     * Scale a video to a given dimension.
+     *
+     * @param Dimension $dimension
+     *
+     * @return VideoFilters
+     */
+    public function scale(Dimension $dimension)
+    {
+        $this->media->addFilter(new ScaleFilter($dimension));
+
+        return $this;
+    }
+
+    /**
      * Changes the video framerate.
      *
      * @param FrameRate $framerate
