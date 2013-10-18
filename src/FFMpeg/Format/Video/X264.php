@@ -16,11 +16,39 @@ namespace FFMpeg\Format\Video;
  */
 class X264 extends DefaultVideo
 {
+    /** @var String */
+    protected $profile;
+
+    /** @var String */
+    protected $level;
+
     public function __construct($audioCodec = 'libfaac', $videoCodec = 'libx264')
     {
         $this
             ->setAudioCodec($audioCodec)
             ->setVideoCodec($videoCodec);
+    }
+
+    /**
+     * Sets the X264 Profile
+     * 
+     * @param string $profile Default is set at baseline, possible options are: baseline, main, high, high10, high422, high444
+     * @param string $level   Default is set at 3.0
+     */
+    public function setProfile($profile = 'baseline', $level = '3.0')
+    {
+        /* baseline, main, high, high10, high422, high444 */
+        $this->profile = $profile;
+        $this->level = $level;
+    }
+
+    public function getExtraParams()
+    {
+        if (!empty($this->profile) && !empty($this->level)) {
+            return array('-profile:v', $this->profile, '-level:v', $this->level);
+        } else {
+            return array();
+        }
     }
 
     /**
