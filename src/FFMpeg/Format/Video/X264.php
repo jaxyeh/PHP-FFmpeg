@@ -30,18 +30,22 @@ class X264 extends DefaultVideo
     }
 
     /**
-     * Sets the X264 Profile
+     * Sets the H264 Profile
      * 
      * @param string $profile Default is set at baseline, possible options are: baseline, main, high, high10, high422, high444
      * @param string $level   Default is set at 3.0
      */
     public function setProfile($profile = 'baseline', $level = '3.0')
     {
-        /* baseline, main, high, high10, high422, high444 */
         $this->profile = $profile;
         $this->level = $level;
     }
 
+    /**
+     * Get Extra parameters for H264 Video Profile
+     * 
+     * @return array
+     */
     public function getExtraParams()
     {
         if (!empty($this->profile) && !empty($this->level)) {
