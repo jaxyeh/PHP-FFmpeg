@@ -141,14 +141,14 @@ class FfmpegFilter implements VideoFilterInterface
         if($scalecmd !== null) {
             $vf = $scalecmd;
             if ($rotatecmd !== null) {
-                $vf .= ', '.$rotatecmd;
+                $vf .= ','.$rotatecmd;
             }
         } elseif ($rotatecmd !== null) {
             $vf = $rotatecmd;
         }
 
         if ($vf !== null)
-            $commands = array('-vf', $vf);
+            $commands = array('-vf', .'"'.$vf.'"');
         $commands[] = '-metadata:s:v';
         $commands[] = 'rotate="0"';
         $commands[] = '-movflags';
