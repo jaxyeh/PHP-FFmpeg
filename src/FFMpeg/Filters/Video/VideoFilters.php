@@ -41,15 +41,29 @@ class VideoFilters extends AudioFilters
     }
 
     /**
-     * Scale a video to a given dimension.
+     * Scale a video to a given dimension, rotate if needed.
      *
      * @param Dimension $dimension
      *
      * @return VideoFilters
      */
-    public function scale(Dimension $dimension)
+    public function scale(Dimension $dimension, $transpose = -1)
     {
-        $this->media->addFilter(new ScaleFilter($dimension));
+        $this->media->addFilter(new FfmpegFilter($dimension, $transpose));
+
+        return $this;
+    }
+
+    /**
+     * Rotate a video to a given direction.
+     *
+     * @param Integer $direction
+     *
+     * @return VideoFilters
+     */
+    public function rotate(Integer $direction = null)
+    {
+        $this->media->addFilter(new RotateFilter($direction));
 
         return $this;
     }
