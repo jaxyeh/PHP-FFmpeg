@@ -98,9 +98,9 @@ class FfmpegFilter implements VideoFilterInterface
             if ($srcHeight <= $targetHeight && $srcWidth <= $targetWidth) {
                 // Do nothing
             } elseif ($srcWidth > $targetWidth) {
-                $scalecmd = 'scale='.$targetWidth.':trunc(out_w/a/2)*2';
+                $scalecmd = 'scale='.$targetWidth.':trunc\(out_w/a/2\)*2';
             } elseif ($srcHeight > $targetHeight) {
-                $scalecmd = 'scale=trunc(out_h/a/2)*2:'.$targetHeight;
+                $scalecmd = 'scale=trunc\(out_h/a/2\)*2:'.$targetHeight;
             }
             /*
             if ($srcHeight < $targetHeight && $srcWidth < $targetWidth) {
@@ -148,7 +148,7 @@ class FfmpegFilter implements VideoFilterInterface
         }
 
         if ($vf !== null)
-            $commands = array('-vf', .'"'.$vf.'"');
+            $commands = array('-vf', $vf);
         $commands[] = '-metadata:s:v';
         $commands[] = 'rotate="0"';
         $commands[] = '-movflags';
