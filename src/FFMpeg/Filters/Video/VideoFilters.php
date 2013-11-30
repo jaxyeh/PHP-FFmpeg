@@ -47,9 +47,9 @@ class VideoFilters extends AudioFilters
      *
      * @return VideoFilters
      */
-    public function scale(Dimension $dimension, $transpose = -1)
+    public function scale(Dimension $dimension, $padding = false, $angle = FfmpegFilter::ROTATE_AUTO)
     {
-        $this->media->addFilter(new FfmpegFilter($dimension, $transpose));
+        $this->media->addFilter(new FfmpegFilter($dimension, $padding, $angle));
 
         return $this;
     }

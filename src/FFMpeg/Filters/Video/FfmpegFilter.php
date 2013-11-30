@@ -18,26 +18,33 @@ use FFMpeg\Format\VideoInterface;
 
 class FfmpegFilter implements VideoFilterInterface
 {
+    /**
+     * Ffmpeg Transpose Code:
+     * 0 = 90CounterCLockwise and Vertical Flip (default)
+     * 1 = 90Clockwise
+     * 2 = 90CounterClockwise
+     * 3 = 90Clockwise and Vertical Flip
+     */
+    const ROTATE_AUTO = 'auto';
+    const ROTATE_90 = 'transpose=1';
+    const ROTATE_180 = 'hflip,vflip';
+    const ROTATE_270 = 'transpose=2';
+
     /** @var Dimension */
     private $dimension;
+    /** @var boolean */
+    private $padding;
+    /** @var string */
+    private $angle;
     /** @var integer */
     private $priority;
-    /** @var integer */
-    private $transpose;
 
-    public function __construct(Dimension $dimension, $transpose = -1, $priority = 0)
+    public function __construct(Dimension $dimension, $padding = false, $angle = self::ROTATE_AUTO, $priority = 0)
     {
         $this->dimension = $dimension;
-        $this->transpose = $transpose;
+        $this->padding = $padding;
+        $this->setAngle($angle);
         $this->priority = $priority;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getPriority()
-    {
-        return $this->priority;
     }
 
     /**
@@ -49,11 +56,27 @@ class FfmpegFilter implements VideoFilterInterface
     }
 
     /**
-     * @return Integer
+     * @return boolean
      */
-    public function getTranspose()
+    public function getPadding()
     {
-        return $this->transpose;
+        return $this->padding;
+    }
+
+    /**
+     * @return Angles
+     */
+    public function getAngle()
+    {
+        return $this->angle;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPriority()
+    {
+        return $this->priority;
     }
 
     /**
@@ -64,17 +87,14 @@ class FfmpegFilter implements VideoFilterInterface
         // Init Variables
         $commands = array();
         $dimensions = null;
-        $tags = null;
-        $vf = null;
-        $scalecmd = null;
-        $rotatecmd = null;
+        $metadata = null;
 
         // Collect details of video stream
         foreach ($video->getStreams() as $stream) {
             if ($stream->isVideo()) {
                 try {
                     $dimension = $stream->getDimensions();
-                    $tags = $stream->get('tags');
+                    $metadata = $stream->get('tags');
                     break;
                 } catch (RuntimeException $e) {
                     // do something?
@@ -82,61 +102,9 @@ class FfmpegFilter implements VideoFilterInterface
             }
         }
 
-        /**
-         * Scale
-         */
-        if (null !== $dimension) {
-            // Source Size
-            $srcHeight = $dimension->getHeight();
-            $srcWidth = $dimension->getWidth();
-            $srcAspect = $dimension->getRatio()->getValue();
-            // Target Size
-            $targetHeight = $this->dimension->getHeight();
-            $targetWidth = $this->dimension->getWidth();
-            $targetAspect = $this->dimension->getRatio()->getValue();
-            // Determine Scale Metrics
-            if ($srcHeight <= $targetHeight && $srcWidth <= $targetWidth) {
-                // Do nothing
-            } elseif ($srcWidth > $targetWidth) {
-                $scalecmd = 'scale='.$targetWidth.':trunc\(out_w/a/2\)*2';
-            } elseif ($srcHeight > $targetHeight) {
-                $scalecmd = 'scale=trunc\(out_h/a/2\)*2:'.$targetHeight;
-            }
-            /*
-            if ($srcHeight < $targetHeight && $srcWidth < $targetWidth) {
-                // Do not upscale, break out...
-            } elseif ($targetAspect > $srcAspect) {
-                $scalecmd = 'scale=trunc(out_h/a/2)*2:'.$targetHeight;
-            } else {
-                $scalecmd = 'scale='.$targetWidth.':trunc(out_w/a/2)*2';
-            }*/
-        }
-
-        /**
-         * Rotate
-         */
-        if ($this->transpose == -1) {
-            // Auto-Detect
-            if(array_key_exists('rotate', $tags)) {
-                // k, so the "rotate" Metadata existed!
-                if ($tags['rotate']==180) {
-                    $rotatecmd = 'vflip,hflip';
-                } elseif ($tags['rotate']==90) {
-                    $rotatecmd = 'transpose=1';
-                } elseif ($tags['rotate']==270 || $tags['rotate']==-90) {
-                    $rotatecmd = 'transpose=2';
-                }
-                /**
-                 * Ffmpeg Transpose Code:
-                 * 0 = 90CounterCLockwise and Vertical Flip (default)
-                 * 1 = 90Clockwise
-                 * 2 = 90CounterClockwise
-                 * 3 = 90Clockwise and Vertical Flip
-                 */
-            }
-        } else {
-            $rotatecmd = 'transpose='.$this->transpose;
-        }
+        $vf = null;
+        $scalecmd = $this->detectScale($dimension);
+        $rotatecmd = $this->detectAngle($metadata);
 
         if($scalecmd !== null) {
             $vf = $scalecmd;
@@ -146,7 +114,6 @@ class FfmpegFilter implements VideoFilterInterface
         } elseif ($rotatecmd !== null) {
             $vf = $rotatecmd;
         }
-
         if ($vf !== null)
             $commands = array('-vf', $vf);
         $commands[] = '-metadata:s:v';
@@ -154,5 +121,79 @@ class FfmpegFilter implements VideoFilterInterface
         $commands[] = '-movflags';
         $commands[] = 'faststart';
         return $commands;
+    }
+
+    private function setAngle($angle)
+    {
+        switch ($angle) {
+            case self::ROTATE_AUTO:
+            case self::ROTATE_90:
+            case self::ROTATE_180:
+            case self::ROTATE_270:
+                $this->angle = $angle;
+                break;
+            default:
+                throw new InvalidArgumentException('Invalid angle value.');
+        }
+    }
+
+    private function detectAngle($metadata)
+    {
+        if ($this->angle != self::ROTATE_AUTO) {
+            return $this->angle;
+        } else {
+            // Auto Detect
+            if(array_key_exists('rotate', $metadata)) {
+                $rotation = $metadata['rotate'];
+                // k, so the "rotate" Metadata existed!
+                if ($rotation==90) {
+                    return self::ROTATE_90;
+                } elseif($rotation==180) {
+                    return self::ROTATE_180;
+                } elseif ($rotation==270 || $rotation==-90) {
+                    return self::ROTATE_270;
+                }
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private function detectScale($dimension)
+    {
+        // Target Size
+        $targetHeight = $this->dimension->getHeight();
+        $targetWidth = $this->dimension->getWidth();
+        $targetAspect = round($this->dimension->getRatio()->getValue(), 2);
+
+        if ($this->padding) {
+            return 'scale = min(1\,gt(iw\,'.$targetWidth.')+gt(ih\,'.$targetHeight.')) * '.
+            '(gte(a\,'.$targetAspect.')*'.$targetWidth.' + lt(a\,'.$targetAspect.')*(('.$targetHeight.'*iw)/ih)) + '.
+            'not(min(1\,gt(iw\,'.$targetWidth.')+gt(ih\,'.$targetHeight.')))*iw : '.
+            'min(1\,gt(iw\,'.$targetWidth.')+gt(ih\,'.$targetHeight.')) * '.
+            '(lte(a\,'.$targetAspect.')*'.$targetHeight.' + gt(a\,'.$targetAspect.')*(('.$targetWidth.'*ih)/iw)) + '.
+            'not(min(1\,gt(iw\,'.$targetWidth.')+gt(ih\,'.$targetHeight.')))*ih, '.
+            'pad='.$targetWidth.':'.$targetHeight.':(ow-iw)/2:(oh-ih)/2';
+        } else {
+            /**
+             * Normal Scaling
+             */
+            if (null !== $dimension) {
+                // Source Size
+                $srcHeight = $dimension->getHeight();
+                $srcWidth = $dimension->getWidth();
+                // Determine Scale Metrics
+                if ($srcHeight <= $targetHeight && $srcWidth <= $targetWidth) {
+                    // Do not upscale!
+                    return null;
+                } elseif ($srcWidth > $targetWidth) {
+                    return 'scale='.$targetWidth.':trunc\(out_w/a/2\)*2';
+                } elseif ($srcHeight > $targetHeight) {
+                    return 'scale=trunc\(out_h/a/2\)*2:'.$targetHeight;
+                }
+            } else {
+                return null;
+            }
+        }
     }
 }

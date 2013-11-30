@@ -86,6 +86,14 @@ class ThreeGP extends DefaultVideo
     /**
      * {@inheritDoc}
      */
+    public function getPasses()
+    {
+        return 1;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getAvailableVideoCodecs()
     {
         return array('h263', 'libx264');
