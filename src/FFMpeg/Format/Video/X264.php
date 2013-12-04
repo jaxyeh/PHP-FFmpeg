@@ -47,9 +47,17 @@ class X264 extends DefaultVideo
      * Sets the passes run
      *
      * @param integer $passes
+     * @throws InvalidArgumentException
      */
-    public function setPasses(Integer $passes){
-        $this->passes = $passes;
+    public function setPasses($passes){
+
+        if ($passes > 2 || $passes < 1) {
+            throw new InvalidArgumentException('Wrong passes value');
+        }
+
+        $this->passes = (int) $passes;
+
+        return $this;
     }
 
     /**
