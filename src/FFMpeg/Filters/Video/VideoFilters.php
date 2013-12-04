@@ -57,6 +57,18 @@ class VideoFilters extends AudioFilters
     }
 
     /**
+     * Add Qt FastStart command
+     *
+     * @return VideoFilters
+     */
+    public function faststart()
+    {
+        $this->media->addFilter(new FaststartFilter());
+
+        return $this;
+    }
+
+    /**
      * Changes the video framerate.
      *
      * @param FrameRate $framerate
