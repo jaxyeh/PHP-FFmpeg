@@ -87,6 +87,8 @@ class Video extends Audio
         if ($format instanceOf VideoInterface) {
             $commands[] = '-b:v';
             $commands[] = $format->getKiloBitrate() . 'k';
+/*
+    // We may be using ffmpeg video profile dealing with this...
             $commands[] = '-refs';
             $commands[] = '6';
             $commands[] = '-coder';
@@ -107,6 +109,7 @@ class Video extends Audio
             $commands[] = '4';
             $commands[] = '-trellis';
             $commands[] = '1';
+*/
         }
 
         if ($format instanceOf AudioInterface) {
