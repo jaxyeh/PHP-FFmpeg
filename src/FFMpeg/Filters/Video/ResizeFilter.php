@@ -88,9 +88,25 @@ class ResizeFilter implements VideoFilterInterface
             if ($stream->isVideo()) {
                 try {
                     $dimensions = $stream->getDimensions();
+                    $metadata = $stream->get('tags');
                     break;
                 } catch (RuntimeException $e) {
 
+                }
+            }
+        }
+
+        if (null !== $metadata) {
+            // Auto Detect Rotation
+            if(array_key_exists('rotate', $metadata)) {
+                $rotation = $metadata['rotate'];
+                // k, so the "rotate" Metadata existed!
+                if ($rotation==90 || $rotation==270 || $rotation==-90) {
+                    // Flip dimensions
+                    if (null !== $dimensions) {
+                        $dimensions = new Dimension($dimensions->getHeight(), $dimensions->getWidth());
+                        $this->dimension = new Dimension($this->dimension->getHeight(), $this->dimension->getWidth());
+                    }
                 }
             }
         }

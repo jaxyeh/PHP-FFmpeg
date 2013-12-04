@@ -74,7 +74,7 @@ class RotateFilter implements VideoFilterInterface
                     }
                 }
             }
-
+/*
             if (in_array($this->angle, array(self::ROTATE_90, self::ROTATE_270), true)) {
                 if ($stream->has('width') && $stream->has('height')) {
                     $width = $stream->get('width');
@@ -82,6 +82,7 @@ class RotateFilter implements VideoFilterInterface
                     $stream->set('height', $width);
                 }
             }
+*/
         }
 /*
         if (in_array($this->angle, array(self::ROTATE_90, self::ROTATE_270), true)) {
