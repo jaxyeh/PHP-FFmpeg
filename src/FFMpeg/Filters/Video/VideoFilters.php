@@ -41,6 +41,22 @@ class VideoFilters extends AudioFilters
     }
 
     /**
+     * Scale & Rotate a video to a given dimension.
+     *
+     * @param Dimension $dimension
+     * @param Boolean $padding
+     * @param String $angle
+     *
+     * @return VideoFilters
+     */
+    public function scalerotate(Dimension $dimension, $padding = false, $angle = FfmpegFilter::ROTATE_AUTO)
+    {
+        $this->media->addFilter(new FfmpegFilter($dimension, $padding, $angle));
+
+        return $this;
+    }
+
+    /**
      * Changes the video framerate.
      *
      * @param FrameRate $framerate
