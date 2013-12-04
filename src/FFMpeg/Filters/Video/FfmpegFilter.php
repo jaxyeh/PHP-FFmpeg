@@ -128,10 +128,10 @@ class FfmpegFilter implements VideoFilterInterface
 
         if ($vf !== null)
             $commands = array('-vf', $vf);
-        $commands[] = '-metadata:s:v';
+        $commands[] = '-metadata:s:v:0';
         $commands[] = 'rotate="0"';
-        $commands[] = '-movflags';
-        $commands[] = 'faststart';
+//        $commands[] = '-movflags';
+//        $commands[] = 'faststart';
         return $commands;
     }
 
