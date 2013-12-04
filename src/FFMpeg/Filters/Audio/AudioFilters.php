@@ -21,9 +21,9 @@ class AudioFilters
      *
      * @return AudioFilters
      */
-    public function resample($rate)
+    public function resample($rate, $channels = 2)
     {
-        $this->media->addFilter(new AudioResamplableFilter($rate));
+        $this->media->addFilter(new AudioResamplableFilter($rate, $channels));
 
         return $this;
     }
