@@ -12,7 +12,7 @@
 namespace FFMpeg\Format\Video;
 
 /**
- * The X264 video format
+ * The H264 video format
  */
 class X264 extends DefaultVideo
 {
@@ -43,10 +43,20 @@ class X264 extends DefaultVideo
         $this->level = $level;
     }
 
+    /**
+     * Sets the passes run
+     *
+     * @param integer $passes
+     */
     public function setPasses(Integer $passes){
         $this->passes = $passes;
     }
 
+    /**
+     * Get Extra parameters for H264 Video Profile
+     * 
+     * @return array
+     */
     public function getExtraParams()
     {
         if (!empty($this->profile) && !empty($this->level)) {
